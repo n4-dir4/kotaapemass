@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Kota Matematika VR — Perbandingan Berbalik Nilai Kelas 8</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    /* ============ RESET & BASE ============ */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Nunito',sans-serif;background:#0a0e1a;overflow:hidden;height:100vh;width:100vw}
+
+    /* ============ SPLASH ============ */
+    #splash{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0a0e1a,#1a1f3a,#0d1a2e);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+    .s-title{font-family:'Fredoka One',cursive;font-size:clamp(28px,7vw,52px);background:linear-gradient(135deg,#38bdf8,#818cf8,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+    .s-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:22px}
+    .s-name-box{background:rgba(255,255,255,.06);border:1.5px solid rgba(99,179,237,.3);border-radius:16px;padding:20px 24px;max-width:360px;width:100%;margin-bottom:22px;text-align:left}
+    .s-name-label{font-size:12px;font-weight:800;color:#7dd3fc;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase}
+    .s-name-input{width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(99,179,237,.2);border-radius:10px;padding:12px 14px;font-size:16px;font-weight:700;color:#fff;font-family:'Nunito',sans-serif;outline:none;transition:.2s}
+    .s-name-input:focus{border-color:#38bdf8;background:rgba(56,189,248,.08)}
+    .s-name-input::placeholder{color:rgba(255,255,255,.25);font-weight:400}
+    .s-name-error{font-size:12px;color:#f87171;font-weight:700;margin-top:6px;display:none}
+    .s-name-error.show{display:block}
+    .btn-main{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none;border-radius:50px;padding:14px 44px;font-size:16px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;letter-spacing:.5px;transition:.2s}
+    .btn-main:hover{transform:scale(1.05);box-shadow:0 8px 30px rgba(99,102,241,.4)}
+    .s-tip{font-size:11px;color:rgba(255,255,255,.2);margin-top:8px}
+
+    /* ============ LOADING ============ */
+    #loading{position:fixed;inset:0;z-index:8000;background:#0a0e1a;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+    #loading.show{display:flex}
+    .loading-text{color:#7dd3fc;font-size:15px;font-weight:700}
+    .loading-bar{width:220px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+    .loading-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#818cf8,#f472b6);animation:loadfill 1.8s ease-in-out infinite}
+    @keyframes loadfill{0%{width:0%}100%{width:100%}}
+
+    /* ============ HUD ============ */
+    #ui{position:fixed;inset:0;z-index:100;pointer-events:none;display:none}
+    #ui.show{display:block}
+    .crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px;pointer-events:none}
+    .crosshair::before,.crosshair::after{content:'';position:absolute;background:rgba(255,255,255,.7)}
+    .crosshair::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
+    .crosshair::after{width:100%;height:2px;top:50%;transform:translateY(-50%)}
+    .hud-top{position:absolute;top:0;left:0;right:0;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;background:linear-gradient(180deg,rgba(10,14,26,.9),transparent);pointer-events:auto;flex-wrap:wrap}
+    .hud-logo{font-family:'Fredoka One',cursive;font-size:16px;color:#38bdf8;cursor:pointer;user-select:none}
+    .hud-nama{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:#fff;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .hud-soal{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:#38bdf8}
+    .hud-lives{display:flex;align-items:center;gap:3px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:20px;padding:4px 10px}
+    .coin{font-size:16px;transition:all .3s}
+    .coin.lost{filter:grayscale(1);opacity:0.25;transform:scale(0.8)}
+    .hud-score{background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.3);border-radius:20px;padding:4px 14px;font-size:13px;font-weight:800;color:#fbbf24}
+    .hud-controls{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(10,14,26,.75);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px 14px;font-size:11px;color:rgba(255,255,255,.4);pointer-events:none;white-space:nowrap}
+
+    /* ============ MINIMAP ============ */
+    .minimap{position:absolute;bottom:16px;right:16px;background:rgba(10,14,26,.85);border:1.5px solid rgba(56,189,248,.3);border-radius:12px;padding:10px;pointer-events:none;width:110px}
+    .minimap-title{font-size:9px;font-weight:800;color:#7dd3fc;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+    .minimap-grid{position:relative;width:90px;height:90px;margin:0 auto}
+    .mm-building{position:absolute;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(255,255,255,.2)}
+    .mm-building.done{border-color:#4ade80;background:rgba(74,222,128,.2)}
+    .mm-building.active{border-color:#fbbf24;background:rgba(251,191,36,.3);box-shadow:0 0 6px rgba(251,191,36,.5)}
+
+    /* ============ JOYSTICK ============ */
+    #joystick-zone{position:fixed;bottom:100px;left:20px;z-index:200;display:none;pointer-events:auto}
+    .joystick-outer{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);position:relative;touch-action:none}
+    .joystick-inner{width:44px;height:44px;border-radius:50%;background:rgba(56,189,248,.6);border:2px solid rgba(56,189,248,.9);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 12px rgba(56,189,248,.4)}
+    .joystick-label{text-align:center;font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;font-weight:700;letter-spacing:.5px}
+    #look-buttons{position:fixed;bottom:100px;right:20px;z-index:200;display:none;pointer-events:auto;display:grid;grid-template-columns:44px 44px 44px;grid-template-rows:44px 44px 44px;gap:6px}
+    .look-btn{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);border-radius:12px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+    .look-btn:active{background:rgba(56,189,248,.3);border-color:#38bdf8}
+    .look-btn.empty{background:transparent;border:none;pointer-events:none}
+
+    /* ============ MODAL SOAL ============ */
+    #soal-modal{position:fixed;inset:0;z-index:5000;background:rgba(5,8,18,.88);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px}
+    #soal-modal.show{display:flex}
+    .soal-box{background:linear-gradient(135deg,#0f172a,#1e293b);border:1.5px solid rgba(56,189,248,.25);border-radius:24px;padding:28px;max-width:420px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+    .soal-building-name{font-size:11px;font-weight:800;color:#7dd3fc;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+    .soal-num{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:14px}
+    .soal-teks{font-size:16px;font-weight:700;color:#f1f5f9;line-height:1.55;margin-bottom:20px;min-height:60px}
+    .soal-hint-row{display:flex;align-items:center;gap:8px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.15);border-radius:10px;padding:10px 12px;margin-bottom:18px}
+    .soal-hint-icon{font-size:16px}
+    .soal-hint-text{font-size:12px;color:#7dd3fc;font-weight:700}
+    .soal-locked-msg{font-size:13px;font-weight:800;text-align:center;padding:8px 14px;border-radius:10px;margin-bottom:12px;display:none}
+    .soal-locked-msg.correct{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);color:#4ade80;display:block}
+    .soal-progress{display:flex;gap:5px;margin-bottom:16px;justify-content:center}
+    .sp-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:.3s;cursor:pointer}
+    .sp-dot.active{background:#38bdf8;transform:scale(1.2)}
+    .sp-dot.correct{background:#4ade80}
+    .sp-dot.wrong{background:rgba(239,68,68,.5)}
+    .numpad-display{background:rgba(255,255,255,.06);border:1.5px solid rgba(99,179,237,.3);border-radius:12px;padding:10px 20px;font-size:24px;font-weight:800;color:#fff;text-align:center;min-height:48px;letter-spacing:3px;margin-bottom:12px;transition:.2s}
+    .numpad-display.locked{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3);color:#4ade80}
+    .numpad{display:flex;flex-direction:column;gap:8px}
+    .numpad-row{display:flex;gap:8px;justify-content:center}
+    .numpad-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:12px;width:52px;height:52px;font-size:18px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:.15s;display:flex;align-items:center;justify-content:center}
+    .numpad-btn:active{transform:scale(.88);background:rgba(56,189,248,.25)}
+    .numpad-btn.locked{opacity:0.3;cursor:not-allowed;pointer-events:none}
+    .numpad-btn.del{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.25);color:#f87171}
+    .nav-btn-cek{background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.4);color:#4ade80;border-radius:12px;flex:1;height:52px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.15s}
+    .nav-btn-cek.locked{opacity:0.3;cursor:not-allowed;pointer-events:none}
+    .nav-btn-next{background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);color:#818cf8;border-radius:12px;flex:1;height:52px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.15s}
+    .nav-btn-keluar{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:12px;width:100%;height:40px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:10px}
+    .nav-row{display:flex;gap:8px;margin-top:8px}
+
+    /* ============ GAME OVER ============ */
+    #gameover{position:fixed;inset:0;z-index:7000;background:rgba(5,8,18,.95);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
+    #gameover.show{display:flex}
+    .go-icon{font-size:64px;margin-bottom:12px}
+    .go-title{font-family:'Fredoka One',cursive;font-size:38px;background:linear-gradient(135deg,#f87171,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+    .go-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:24px}
+    .go-btn{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1a0a00;border:none;border-radius:50px;padding:14px 36px;font-size:16px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
+
+    /* ============ FINISH ============ */
+    #finish{position:fixed;inset:0;z-index:6000;background:linear-gradient(135deg,#0a0e1a,#1a1f3a);display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
+    #finish.show{display:flex}
+    .f-stars{font-size:48px;margin-bottom:10px}
+    .f-title{font-family:'Fredoka One',cursive;font-size:34px;background:linear-gradient(135deg,#fbbf24,#f472b6,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+    .f-nama{font-size:16px;color:rgba(255,255,255,.6);margin-bottom:16px}
+    .f-score{font-size:56px;font-weight:900;color:#fff;margin-bottom:2px}
+    .f-score-label{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px}
+    .f-stats{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}
+    .f-stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 20px;min-width:90px}
+    .f-stat-n{font-size:26px;font-weight:800;color:#4ade80}
+    .f-stat-l{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+
+    /* ============ MODE GURU ============ */
+    #pw-modal{position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center}
+    #pw-modal.show{display:flex}
+    .pw-box{background:linear-gradient(135deg,#0f172a,#1e293b);border:1.5px solid rgba(56,189,248,.25);border-radius:20px;padding:28px;max-width:300px;width:90%;text-align:center}
+    .pw-icon{font-size:36px;margin-bottom:8px}
+    .pw-title{font-family:'Fredoka One',cursive;font-size:22px;color:#38bdf8;margin-bottom:4px}
+    .pw-sub{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:16px}
+    .pw-input{width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(56,189,248,.2);border-radius:10px;padding:12px;font-size:18px;font-weight:800;color:#fff;text-align:center;letter-spacing:4px;outline:none;font-family:'Nunito',sans-serif}
+    .pw-input:focus{border-color:#38bdf8}
+    .pw-error{font-size:12px;color:#f87171;font-weight:700;margin-top:8px;min-height:18px}
+    .pw-row{display:flex;gap:8px;margin-top:14px}
+    .pw-btn-ok{flex:1;background:linear-gradient(135deg,#38bdf8,#3b82f6);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
+    .pw-btn-batal{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:10px;padding:12px;font-size:14px;cursor:pointer;font-family:'Nunito',sans-serif}
+    #guru{position:fixed;inset:0;z-index:9000;background:#0a0e1a;display:none;flex-direction:column;overflow-y:auto;padding:20px}
+    #guru.show{display:flex}
+    .guru-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .guru-title{font-family:'Fredoka One',cursive;font-size:20px;color:#38bdf8}
+    .g-close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;font-family:'Nunito',sans-serif}
+    .g-building-section{background:rgba(255,255,255,.04);border:1.5px solid rgba(56,189,248,.2);border-radius:16px;padding:16px;margin-bottom:16px}
+    .g-building-title{font-size:13px;font-weight:800;color:#38bdf8;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .g-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px;margin-bottom:8px}
+    .g-num{font-size:11px;color:#7dd3fc;font-weight:700;margin-bottom:6px}
+    .g-label{font-size:11px;color:rgba(255,255,255,.4);display:block;margin:5px 0 3px}
+    .g-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 10px;font-size:13px;color:#fff;font-family:'Nunito',sans-serif;outline:none}
+    .g-input:focus{border-color:rgba(56,189,248,.5)}
+    textarea.g-input{height:60px;resize:vertical}
+    .g-row{display:flex;gap:8px}
+    .btn-del{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Nunito',sans-serif}
+    .btn-add{width:100%;background:rgba(74,222,128,.07);border:1px dashed rgba(74,222,128,.3);color:#4ade80;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:4px}
+    .btn-save{width:100%;background:linear-gradient(135deg,#4ade80,#22c55e);color:#052e16;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:8px}
+    .g-building-name-input{background:rgba(56,189,248,.08);border:1.5px solid rgba(56,189,248,.2);border-radius:8px;padding:6px 10px;font-size:13px;color:#38bdf8;font-weight:700;font-family:'Nunito',sans-serif;outline:none;width:200px}
+  </style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="s-title">🏙️ Kota Matematika VR</div>
+  <div class="s-sub">Perbandingan Berbalik Nilai · Kelas 8 SMP · Jelajahi Kota & Jawab Soal</div>
+  <div class="s-name-box">
+    <div class="s-name-label">👤 Nama Siswa</div>
+    <input type="text" id="input-nama" class="s-name-input" placeholder="Tulis nama kamu..." maxlength="40"/>
+    <div class="s-name-error" id="nama-error">⚠️ Nama tidak boleh kosong!</div>
+  </div>
+  <button class="btn-main" onclick="startGameWithNama()">🚀 Jelajahi Kota</button>
+  <div class="s-tip">WASD / Arrow Keys untuk bergerak · Klik pintu gedung untuk masuk</div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loading-text">🏗️ Membangun kota virtual...</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<!-- PASSWORD GURU (klik logo 5x, password: guru123) -->
+<div id="pw-modal">
+  <div class="pw-box">
+    <div class="pw-icon">🔐</div>
+    <div class="pw-title">Mode Guru</div>
+    <div class="pw-sub">Masukkan password untuk melanjutkan</div>
+    <input type="password" id="pw-input" class="pw-input" placeholder="Password..." maxlength="20"/>
+    <div class="pw-error" id="pw-error"></div>
+    <div class="pw-row">
+      <button class="pw-btn-batal" onclick="closePwModal()">Batal</button>
+      <button class="pw-btn-ok" onclick="cekPassword()">✓ Masuk</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODE GURU -->
+<div id="guru">
+  <div class="guru-head">
+    <div class="guru-title">⚙️ Mode Guru — Edit Gedung & Soal</div>
+    <button class="g-close" onclick="hideGuru()">✕ Tutup</button>
+  </div>
+
+  <!-- CLOUD SETUP BOX -->
+  <div id="cloud-box" style="background:rgba(56,189,248,.07);border:1.5px solid rgba(56,189,248,.25);border-radius:16px;padding:16px;margin-bottom:16px">
+    <div style="font-size:13px;font-weight:800;color:#38bdf8;margin-bottom:8px">☁️ Simpan Soal ke Cloud (Permanen)</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px;line-height:1.6">
+      Agar soal tersimpan permanen dan berlaku di semua device:<br>
+      1. Daftar gratis di <strong style="color:#fbbf24">jsonbin.io</strong><br>
+      2. Klik <strong style="color:#fbbf24">API Keys → Create Access Key</strong> → copy<br>
+      3. Paste di bawah → klik <strong style="color:#4ade80">Test &amp; Hubungkan</strong>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <div style="flex:1">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">API Key JSONBin</div>
+        <input id="cloud-apikey" type="text" placeholder="$2a$10$xxxxxxxxxxxx"
+          style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(56,189,248,.2);border-radius:10px;padding:9px 12px;font-size:13px;color:#fff;font-family:'Nunito',sans-serif;outline:none;box-sizing:border-box">
+      </div>
+      <div style="align-self:flex-end">
+        <button onclick="cloudTest()" style="background:rgba(56,189,248,.2);border:1.5px solid rgba(56,189,248,.4);color:#38bdf8;border-radius:10px;padding:9px 14px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif;white-space:nowrap">Test &amp; Hubungkan</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <div style="flex:1">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Bin ID (otomatis terisi setelah test)</div>
+        <input id="cloud-binid" type="text" placeholder="Kosongkan jika pertama kali"
+          style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(56,189,248,.2);border-radius:10px;padding:9px 12px;font-size:13px;color:#fff;font-family:'Nunito',sans-serif;outline:none;box-sizing:border-box">
+      </div>
+    </div>
+    <div id="cloud-status" style="font-size:12px;color:rgba(255,255,255,.35);padding:6px 10px;border-radius:8px">Belum terhubung — soal hanya tersimpan lokal</div>
+  </div>
+
+  <div id="guru-list"></div>
+  <button class="btn-save" id="btn-guru-save" onclick="guruSimpan()">💾 Simpan & Terapkan ke Game</button>
+</div>
+
+<!-- A-FRAME VR SCENE -->
+<a-scene id="scene" style="display:none"
+  vr-mode-ui="enabled:true"
+  renderer="antialias:true;colorManagement:true"
+  loading-screen="enabled:false"
+  embedded>
+  <a-assets timeout="10000"></a-assets>
+  <a-sky color="#87CEEB"></a-sky>
+  <a-sphere position="20 25 -40" radius="3" color="#FFE566" material="shader:flat;emissive:#FFD700;emissiveIntensity:1.2"></a-sphere>
+  <a-sphere position="-12 18.5 -35" radius="3" color="#fff" material="shader:flat" opacity="0.9"></a-sphere>
+  <a-sphere position="-9 18 -35" radius="2" color="#fff" material="shader:flat" opacity="0.85"></a-sphere>
+  <a-sphere position="13 20.5 -40" radius="3.5" color="#fff" material="shader:flat" opacity="0.9"></a-sphere>
+  <a-plane position="0 0 0" rotation="-90 0 0" width="120" height="120" color="#4a5568" roughness="0.9"></a-plane>
+  <a-plane position="0 0.01 0" rotation="-90 0 0" width="8" height="80" color="#374151"></a-plane>
+  <a-plane position="0 0.02 -5"  rotation="-90 0 0" width="0.3" height="3" color="#fbbf24" opacity="0.8"></a-plane>
+  <a-plane position="0 0.02 -13" rotation="-90 0 0" width="0.3" height="3" color="#fbbf24" opacity="0.8"></a-plane>
+  <a-plane position="0 0.02 -21" rotation="-90 0 0" width="0.3" height="3" color="#fbbf24" opacity="0.8"></a-plane>
+  <a-plane position="0 0.02 -29" rotation="-90 0 0" width="0.3" height="3" color="#fbbf24" opacity="0.8"></a-plane>
+  <a-plane position="-6.5 0.02 0" rotation="-90 0 0" width="5" height="80" color="#6b7280" roughness="0.9"></a-plane>
+  <a-plane position="6.5 0.02 0"  rotation="-90 0 0" width="5" height="80" color="#6b7280" roughness="0.9"></a-plane>
+  <a-plane position="-15 0.01 0" rotation="-90 0 0" width="14" height="80" color="#4a7c59" roughness="1"></a-plane>
+  <a-plane position="15 0.01 0"  rotation="-90 0 0" width="14" height="80" color="#4a7c59" roughness="1"></a-plane>
+  <a-entity id="buildings"></a-entity>
+  <a-cylinder position="-4.5 1.5 -6"  radius="0.06" height="3" color="#9ca3af"></a-cylinder>
+  <a-sphere   position="-4.5 3.2 -6"  radius="0.18" color="#fffde7" material="shader:flat;emissive:#fff59d;emissiveIntensity:1"></a-sphere>
+  <a-light type="point" position="-4.5 3 -6"  color="#fffde7" intensity="0.6" distance="8"></a-light>
+  <a-cylinder position="-4.5 1.5 -18" radius="0.06" height="3" color="#9ca3af"></a-cylinder>
+  <a-sphere   position="-4.5 3.2 -18" radius="0.18" color="#fffde7" material="shader:flat;emissive:#fff59d;emissiveIntensity:1"></a-sphere>
+  <a-light type="point" position="-4.5 3 -18" color="#fffde7" intensity="0.6" distance="8"></a-light>
+  <a-cylinder position="4.5 1.5 -6"   radius="0.06" height="3" color="#9ca3af"></a-cylinder>
+  <a-sphere   position="4.5 3.2 -6"   radius="0.18" color="#fffde7" material="shader:flat;emissive:#fff59d;emissiveIntensity:1"></a-sphere>
+  <a-light type="point" position="4.5 3 -6"  color="#fffde7" intensity="0.6" distance="8"></a-light>
+  <a-cylinder position="4.5 1.5 -18"  radius="0.06" height="3" color="#9ca3af"></a-cylinder>
+  <a-sphere   position="4.5 3.2 -18"  radius="0.18" color="#fffde7" material="shader:flat;emissive:#fff59d;emissiveIntensity:1"></a-sphere>
+  <a-light type="point" position="4.5 3 -18" color="#fffde7" intensity="0.6" distance="8"></a-light>
+  <a-cylinder position="-10 1 -4"  radius="0.15" height="2" color="#5d4037"></a-cylinder>
+  <a-sphere   position="-10 2.8 -4"  radius="1.2" color="#2e7d32"></a-sphere>
+  <a-cylinder position="-10 1 -14" radius="0.15" height="2" color="#5d4037"></a-cylinder>
+  <a-sphere   position="-10 2.8 -14" radius="1.3" color="#388e3c"></a-sphere>
+  <a-cylinder position="-10 1 -24" radius="0.15" height="2" color="#5d4037"></a-cylinder>
+  <a-sphere   position="-10 2.8 -24" radius="1.1" color="#1b5e20"></a-sphere>
+  <a-cylinder position="10 1 -4"   radius="0.15" height="2" color="#5d4037"></a-cylinder>
+  <a-sphere   position="10 2.8 -4"   radius="1.2" color="#2e7d32"></a-sphere>
+  <a-cylinder position="10 1 -14"  radius="0.15" height="2" color="#5d4037"></a-cylinder>
+  <a-sphere   position="10 2.8 -14"  radius="1.3" color="#388e3c"></a-sphere>
+  <a-cylinder position="10 1 -24"  radius="0.15" height="2" color="#5d4037"></a-cylinder>
+  <a-sphere   position="10 2.8 -24"  radius="1.1" color="#1b5e20"></a-sphere>
+  <a-light type="ambient"     color="#d0e8ff" intensity="1.0"></a-light>
+  <a-light type="directional" position="20 30 10" color="#fff" intensity="0.8"></a-light>
+  <a-entity id="rig" position="0 1.6 3">
+    <a-camera wasd-controls="enabled:true;acceleration:20" look-controls="enabled:true;pointerLockEnabled:false" near="0.05">
+      <a-cursor color="#38bdf8" fuse="false" opacity="0.9"
+        geometry="primitive:ring;radiusInner:0.008;radiusOuter:0.014"
+        material="color:#38bdf8;shader:flat"
+        raycaster="objects:.pintu-clickable;far:6">
+      </a-cursor>
+    </a-camera>
+  </a-entity>
+</a-scene>
+
+<!-- HUD -->
+<div id="ui">
+  <div class="crosshair"></div>
+  <div class="hud-top">
+    <div class="hud-logo" id="logo-click-zone" onclick="logoClick()">🏙️ Kota VR</div>
+    <div class="hud-nama" id="hud-nama">Siswa</div>
+    <div class="hud-soal" id="hud-gedung-info">Gedung: 0/0 selesai</div>
+    <div class="hud-lives" id="hud-lives">
+      <span class="coin" id="coin1">🪙</span>
+      <span class="coin" id="coin2">🪙</span>
+      <span class="coin" id="coin3">🪙</span>
+    </div>
+    <div class="hud-score" id="ui-score">0 poin</div>
+  </div>
+  <div class="hud-controls">WASD / ↑↓←→ untuk jalan · Klik pintu gedung untuk masuk</div>
+  <div class="minimap">
+    <div class="minimap-title">🗺 Peta Kota</div>
+    <div class="minimap-grid" id="minimap-grid"></div>
+  </div>
+  <!-- Joystick HP -->
+  <div id="joystick-zone">
+    <div class="joystick-outer" id="joystick-outer">
+      <div class="joystick-inner" id="joystick-inner"></div>
+    </div>
+    <div class="joystick-label">GERAK</div>
+  </div>
+  <div id="look-buttons">
+    <div class="look-btn empty"></div>
+    <div class="look-btn" ontouchstart="startLook('up')"    ontouchend="stopLook()">↑</div>
+    <div class="look-btn empty"></div>
+    <div class="look-btn" ontouchstart="startLook('left')"  ontouchend="stopLook()">←</div>
+    <div class="look-btn empty"></div>
+    <div class="look-btn" ontouchstart="startLook('right')" ontouchend="stopLook()">→</div>
+    <div class="look-btn empty"></div>
+    <div class="look-btn" ontouchstart="startLook('down')"  ontouchend="stopLook()">↓</div>
+    <div class="look-btn empty"></div>
+  </div>
+</div>
+
+<!-- MODAL SOAL -->
+<div id="soal-modal">
+  <div class="soal-box">
+    <div class="soal-building-name" id="modal-building-name">Gedung A</div>
+    <div class="soal-progress" id="soal-progress"></div>
+    <div class="soal-num" id="modal-soal-num">Soal 1 dari 3</div>
+    <div class="soal-teks" id="modal-soal-teks">...</div>
+    <div class="soal-hint-row">
+      <div class="soal-hint-icon">💡</div>
+      <div class="soal-hint-text" id="modal-hint">Hint...</div>
+    </div>
+    <div class="soal-locked-msg" id="modal-locked-msg"></div>
+    <div class="numpad-display" id="numpad-display">—</div>
+    <div class="numpad">
+      <div class="numpad-row">
+        <button class="numpad-btn" onclick="numInput('7')">7</button>
+        <button class="numpad-btn" onclick="numInput('8')">8</button>
+        <button class="numpad-btn" onclick="numInput('9')">9</button>
+        <button class="numpad-btn del" onclick="numDel()">⌫</button>
+      </div>
+      <div class="numpad-row">
+        <button class="numpad-btn" onclick="numInput('4')">4</button>
+        <button class="numpad-btn" onclick="numInput('5')">5</button>
+        <button class="numpad-btn" onclick="numInput('6')">6</button>
+        <button class="numpad-btn" onclick="numInput('.')">.</button>
+      </div>
+      <div class="numpad-row">
+        <button class="numpad-btn" onclick="numInput('1')">1</button>
+        <button class="numpad-btn" onclick="numInput('2')">2</button>
+        <button class="numpad-btn" onclick="numInput('3')">3</button>
+        <button class="numpad-btn" onclick="numInput('0')">0</button>
+      </div>
+      <div class="numpad-row">
+        <button class="nav-btn-cek" id="btn-cek" onclick="cekJawaban()">✓ Cek Jawaban</button>
+        <button class="nav-btn-next" onclick="soalBerikutnya()">→ Lanjut</button>
+      </div>
+    </div>
+    <button class="nav-btn-keluar" onclick="keluarGedung()">🚪 Keluar Gedung</button>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover">
+  <div class="go-icon">💸</div>
+  <div class="go-title">Koin Habis!</div>
+  <div class="go-sub" id="go-sub">Semua koin habis!</div>
+  <button class="go-btn" onclick="lanjutDariGameOver()">💪 Lanjut Berjuang!</button>
+</div>
+
+<!-- FINISH -->
+<div id="finish">
+  <div class="f-stars" id="f-stars">⭐⭐⭐</div>
+  <div class="f-title">Kota Selesai Dijelajahi!</div>
+  <div class="f-nama" id="f-nama">Hebat!</div>
+  <div class="f-score" id="f-score">0</div>
+  <div class="f-score-label">poin total</div>
+  <div class="f-stats">
+    <div class="f-stat"><div class="f-stat-n" id="f-benar">0</div><div class="f-stat-l">Benar</div></div>
+    <div class="f-stat"><div class="f-stat-n" id="f-total">0</div><div class="f-stat-l">Total Soal</div></div>
+    <div class="f-stat"><div class="f-stat-n" id="f-gedung">0</div><div class="f-stat-l">Gedung</div></div>
+  </div>
+  <button class="btn-main" onclick="ulangGame()">🔄 Main Lagi</button>
+</div>
+
+<script>
+// ================================================
+// DATA GEDUNG & SOAL — EDIT DI SINI ATAU LEWAT MODE GURU
+// ================================================
+let GEDUNG = [
+  {
+    nama: '🏢 Gedung Alpha',
+    warna: '#1e40af', atap: '#1d4ed8',
+    posX: -9, posZ: -8,
+    soal: [
+      {teks:"Sebuah rumah dibangun 6 tukang dalam 14 hari. Agar selesai dalam 7 hari, berapa tukang yang diperlukan?", jwb:12, hint:"6 × 14 = ? × 7"},
+      {teks:"12 orang menyelesaikan proyek dalam 10 hari. Berapa hari jika dikerjakan 15 orang?", jwb:8, hint:"12 × 10 = 15 × ?"},
+      {teks:"18 orang menyelesaikan irigasi dalam 20 hari. Berapa orang agar selesai dalam 15 hari?", jwb:24, hint:"18 × 20 = ? × 15"},
+    ]
+  },
+  {
+    nama: '🏬 Gedung Beta',
+    warna: '#065f46', atap: '#047857',
+    posX: 9, posZ: -8,
+    soal: [
+      {teks:"Mobil berkecepatan 60 km/jam tiba dalam 4 jam. Agar tiba dalam 3 jam, berapakah kecepatannya?", jwb:80, hint:"60 × 4 = ? × 3"},
+      {teks:"Jarak 240 km ditempuh 80 km/jam dalam 3 jam. Jika kecepatan 60 km/jam, berapa jam?", jwb:4, hint:"80 × 3 = 60 × ?"},
+    ]
+  },
+  {
+    nama: '🏦 Gedung Gamma',
+    warna: '#7c2d12', atap: '#9a3412',
+    posX: -9, posZ: -20,
+    soal: [
+      {teks:"Pakan 30 sapi habis dalam 12 hari. Jika ditambah 10 sapi, berapa hari pakan habis?", jwb:9, hint:"30 × 12 = 40 × ?"},
+      {teks:"Pakan 50 kambing cukup 30 hari. Jika 10 kambing dijual, berapa hari pakan bertahan?", jwb:37.5, hint:"50 × 30 = 40 × ?"},
+      {teks:"Stok beras 200 orang cukup 30 hari. Jika ada 250 orang, berapa hari stok bertahan?", jwb:24, hint:"200 × 30 = 250 × ?"},
+    ]
+  },
+  {
+    nama: '🏛️ Gedung Delta',
+    warna: '#4c1d95', atap: '#5b21b6',
+    posX: 9, posZ: -20,
+    soal: [
+      {teks:"Tangki diisi 4 pompa dalam 9 jam. Jika 1 pompa rusak, berapa jam?", jwb:12, hint:"4 × 9 = 3 × ?"},
+      {teks:"1 mesin mengisi kolam 6 jam. Jika pakai 2 mesin bersamaan, berapa jam?", jwb:3, hint:"1 × 6 = 2 × ?"},
+    ]
+  },
+  {
+    nama: '🏗️ Gedung Epsilon',
+    warna: '#1f2937', atap: '#374151',
+    posX: -9, posZ: -32,
+    soal: [
+      {teks:"8 wartawan meliput berita dalam 3 hari. Agar selesai 1 hari, berapa wartawan?", jwb:24, hint:"8 × 3 = ? × 1"},
+      {teks:"Proyek jembatan: 24 pekerja selesai 15 hari. Berapa hari jika hanya 18 pekerja?", jwb:20, hint:"24 × 15 = 18 × ?"},
+    ]
+  },
+];
+
+// ================================================
+// STATE GAME
+// ================================================
+const GURU_PASSWORD = 'guru123';
+const MAX_LIVES = 3;
+const PENALTY = 50;
+const PENALTY_BONUS = 150;
+
+let namaSiswa = '';
+let lives = MAX_LIVES;
+let score = 0;
+let totalBenar = 0;
+let gameActive = false;
+let gedungStatus = [];
+let gedungSelesai = [];
+let activeGedungIdx = -1;
+let activeSoalIdx = 0;
+let numStr = '';
+
+// ================================================
+// START GAME
+// ================================================
+function startGameWithNama(){
+  const inp = document.getElementById('input-nama');
+  const err = document.getElementById('nama-error');
+  const nama = inp.value.trim();
+  if(!nama){ err.classList.add('show'); inp.focus(); return; }
+  err.classList.remove('show');
+  namaSiswa = nama;
+  document.getElementById('hud-nama').textContent = '👤 ' + nama;
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('loading').classList.add('show');
+
+  // Load dari localStorage
+  CLOUD_KEY = localStorage.getItem('kota_vr_key') || '';
+  CLOUD_BIN = localStorage.getItem('kota_vr_bin') || '';
+
+  // Coba load soal dari cloud, lalu mulai game
+  cloudLoad().then(()=>{
+    setTimeout(()=>{
+      document.getElementById('loading').classList.remove('show');
+      document.getElementById('scene').style.display = 'block';
+      document.getElementById('ui').classList.add('show');
+      gameActive = true;
+      initGame();
+    }, 1500);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const inp = document.getElementById('input-nama');
+  if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter') startGameWithNama(); });
+  const pwInp = document.getElementById('pw-input');
+  if(pwInp) pwInp.addEventListener('keydown', e=>{ if(e.key==='Enter') cekPassword(); if(e.key==='Escape') closePwModal(); });
+  document.getElementById('pw-modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closePwModal(); });
+});
+
+// ================================================
+// INIT GAME
+// ================================================
+function initGame(){
+  lives = MAX_LIVES;
+  score = 0;
+  totalBenar = 0;
+  gedungStatus = GEDUNG.map(g => g.soal.map(()=>'unanswered'));
+  gedungSelesai = GEDUNG.map(()=>false);
+  updateLivesHUD();
+  updateScoreHUD();
+  updateGedungInfo();
+  buildBuildings();
+  buildMinimap();
+  startProximityCheck();
+}
+
+// ================================================
+// BANGUN GEDUNG 3D
+// ================================================
+function buildBuildings(){
+  const container = document.getElementById('buildings');
+  container.innerHTML = '';
+  GEDUNG.forEach((g, i)=>{
+    const lebar = 5;
+    const tinggi = 5 + (i % 3) * 1.5;
+    const kedalaman = 4;
+
+    // Badan gedung
+    const badan = document.createElement('a-box');
+    badan.setAttribute('position', `${g.posX} ${tinggi/2} ${g.posZ}`);
+    badan.setAttribute('width', lebar);
+    badan.setAttribute('height', tinggi);
+    badan.setAttribute('depth', kedalaman);
+    badan.setAttribute('color', g.warna);
+    badan.setAttribute('roughness', '0.6');
+    badan.setAttribute('shadow', '');
+    container.appendChild(badan);
+
+    // Atap
+    const atap = document.createElement('a-box');
+    atap.setAttribute('position', `${g.posX} ${tinggi+0.15} ${g.posZ}`);
+    atap.setAttribute('width', lebar+0.3);
+    atap.setAttribute('height', '0.3');
+    atap.setAttribute('depth', kedalaman+0.3);
+    atap.setAttribute('color', g.atap);
+    container.appendChild(atap);
+
+    // Jendela
+    for(let row=0; row<Math.min(Math.floor(tinggi/2),3); row++){
+      for(let col=-1; col<=1; col+=2){
+        const jendela = document.createElement('a-box');
+        jendela.setAttribute('position', `${g.posX+col*1.4} ${1.2+row*1.5} ${g.posZ-kedalaman/2-0.05}`);
+        jendela.setAttribute('width', '0.9'); jendela.setAttribute('height', '0.8'); jendela.setAttribute('depth', '0.05');
+        jendela.setAttribute('color', '#7dd3fc'); jendela.setAttribute('opacity', '0.7');
+        container.appendChild(jendela);
+      }
+    }
+
+    // Papan nama
+    const papan = document.createElement('a-box');
+    papan.setAttribute('position', `${g.posX} ${tinggi+0.6} ${g.posZ}`);
+    papan.setAttribute('width', lebar+0.5); papan.setAttribute('height', '0.6'); papan.setAttribute('depth', '0.2');
+    papan.setAttribute('color', '#1e293b');
+    container.appendChild(papan);
+    const namaText = document.createElement('a-text');
+    namaText.setAttribute('value', g.nama);
+    namaText.setAttribute('position', `${g.posX} ${tinggi+0.62} ${g.posZ-kedalaman/2-0.12}`);
+    namaText.setAttribute('align', 'center'); namaText.setAttribute('color', '#f1f5f9');
+    namaText.setAttribute('width', '5'); namaText.setAttribute('font', 'roboto'); namaText.setAttribute('wrap-count', '20');
+    container.appendChild(namaText);
+
+    // Bingkai pintu
+    const bingkaiPintu = document.createElement('a-box');
+    bingkaiPintu.setAttribute('position', `${g.posX} 1.0 ${g.posZ-kedalaman/2-0.1}`);
+    bingkaiPintu.setAttribute('width', '1.4'); bingkaiPintu.setAttribute('height', '2.2'); bingkaiPintu.setAttribute('depth', '0.06');
+    bingkaiPintu.setAttribute('color', '#d97706');
+    container.appendChild(bingkaiPintu);
+
+    // Pintu (clickable)
+    const pintu = document.createElement('a-box');
+    pintu.setAttribute('id', `pintu-${i}`);
+    pintu.setAttribute('class', 'pintu-clickable');
+    pintu.setAttribute('position', `${g.posX} 1.0 ${g.posZ-kedalaman/2-0.06}`);
+    pintu.setAttribute('width', '1.2'); pintu.setAttribute('height', '2.0'); pintu.setAttribute('depth', '0.08');
+    pintu.setAttribute('color', '#92400e');
+    pintu.addEventListener('click', ()=>bukaGedung(i));
+    container.appendChild(pintu);
+
+    // Label pintu
+    const tandaPintu = document.createElement('a-text');
+    tandaPintu.setAttribute('value', 'KLIK UNTUK MASUK');
+    tandaPintu.setAttribute('position', `${g.posX} 2.3 ${g.posZ-kedalaman/2-0.12}`);
+    tandaPintu.setAttribute('align', 'center'); tandaPintu.setAttribute('color', '#fbbf24');
+    tandaPintu.setAttribute('width', '3'); tandaPintu.setAttribute('font', 'roboto'); tandaPintu.setAttribute('wrap-count', '20');
+    container.appendChild(tandaPintu);
+
+    // Badge status
+    const badge = document.createElement('a-text');
+    badge.setAttribute('id', `badge-${i}`);
+    badge.setAttribute('value', `📝 ${g.soal.length} soal`);
+    badge.setAttribute('position', `${g.posX} 0.25 ${g.posZ-kedalaman/2-0.12}`);
+    badge.setAttribute('align', 'center'); badge.setAttribute('color', '#94a3b8');
+    badge.setAttribute('width', '3'); badge.setAttribute('font', 'roboto');
+    container.appendChild(badge);
+  });
+}
+
+// ================================================
+// PROXIMITY CHECK
+// ================================================
+let proxTimer = null;
+function startProximityCheck(){
+  if(proxTimer) clearInterval(proxTimer);
+  proxTimer = setInterval(()=>{
+    const rig = document.getElementById('rig');
+    if(!rig) return;
+    const pos = rig.getAttribute('position');
+    if(!pos) return;
+    GEDUNG.forEach((g, i)=>{
+      const dist = Math.sqrt(Math.pow(pos.x-g.posX,2)+Math.pow(pos.z-g.posZ,2));
+      const pintu = document.getElementById(`pintu-${i}`);
+      if(!pintu) return;
+      if(dist < 4){
+        pintu.setAttribute('color', gedungSelesai[i]?'#4ade80':'#fbbf24');
+      } else {
+        pintu.setAttribute('color', gedungSelesai[i]?'#4ade80':'#92400e');
+      }
+    });
+  }, 500);
+}
+
+// ================================================
+// BUKA / KELUAR GEDUNG
+// ================================================
+function bukaGedung(gIdx){
+  activeGedungIdx = gIdx;
+  numStr = '';
+  const st = gedungStatus[gIdx];
+  const first = st.findIndex(s=>s!=='correct');
+  activeSoalIdx = first !== -1 ? first : 0;
+  renderModalSoal();
+  document.getElementById('soal-modal').classList.add('show');
+  document.getElementById('joystick-zone').style.display = 'none';
+  document.getElementById('look-buttons').style.display = 'none';
+  const cam = document.querySelector('a-camera');
+  if(cam) cam.setAttribute('wasd-controls','enabled:false');
+}
+
+function keluarGedung(){
+  document.getElementById('soal-modal').classList.remove('show');
+  activeGedungIdx = -1;
+  numStr = '';
+  const cam = document.querySelector('a-camera');
+  if(cam) cam.setAttribute('wasd-controls','enabled:true;acceleration:20');
+  const isTouch = ('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  if(isTouch){
+    document.getElementById('joystick-zone').style.display='block';
+    document.getElementById('look-buttons').style.display='grid';
+  }
+  updateGedungBadge();
+  checkAllDone();
+}
+
+// ================================================
+// RENDER MODAL SOAL
+// ================================================
+function renderModalSoal(){
+  if(activeGedungIdx<0) return;
+  const g = GEDUNG[activeGedungIdx];
+  const s = g.soal[activeSoalIdx];
+  const st = gedungStatus[activeGedungIdx][activeSoalIdx];
+  const isLocked = st==='correct';
+
+  document.getElementById('modal-building-name').textContent = g.nama;
+  document.getElementById('modal-soal-num').textContent = `Soal ${activeSoalIdx+1} dari ${g.soal.length}`;
+  document.getElementById('modal-soal-teks').textContent = s.teks;
+  document.getElementById('modal-hint').textContent = 'Hint: '+s.hint;
+
+  // Progress dots
+  const prog = document.getElementById('soal-progress');
+  prog.innerHTML = '';
+  gedungStatus[activeGedungIdx].forEach((s_st,i)=>{
+    const dot = document.createElement('div');
+    dot.className = 'sp-dot'+(i===activeSoalIdx?' active':'')+(s_st==='correct'?' correct':'')+(s_st==='wrong'?' wrong':'');
+    dot.onclick = ()=>{ activeSoalIdx=i; numStr=''; renderModalSoal(); };
+    prog.appendChild(dot);
+  });
+
+  // Lock/unlock numpad
+  const lockedMsg = document.getElementById('modal-locked-msg');
+  const display = document.getElementById('numpad-display');
+  const cekBtn = document.getElementById('btn-cek');
+  const allBtns = document.querySelectorAll('.numpad-btn');
+  if(isLocked){
+    lockedMsg.className = 'soal-locked-msg correct';
+    lockedMsg.textContent = '✅ Sudah benar! Jawaban: '+s.jwb;
+    display.textContent = s.jwb; display.classList.add('locked');
+    allBtns.forEach(b=>b.classList.add('locked'));
+    if(cekBtn) cekBtn.classList.add('locked');
+  } else {
+    lockedMsg.className = 'soal-locked-msg';
+    display.textContent = numStr||'—'; display.classList.remove('locked');
+    allBtns.forEach(b=>b.classList.remove('locked'));
+    if(cekBtn) cekBtn.classList.remove('locked');
+  }
+}
+
+// ================================================
+// NUMPAD
+// ================================================
+function numInput(c){
+  if(activeGedungIdx<0) return;
+  if(gedungStatus[activeGedungIdx][activeSoalIdx]==='correct') return;
+  if(numStr.length>=6) return;
+  if(c==='.'&&numStr.includes('.')) return;
+  numStr+=c;
+  document.getElementById('numpad-display').textContent = numStr||'—';
+}
+function numDel(){
+  if(activeGedungIdx<0) return;
+  if(gedungStatus[activeGedungIdx][activeSoalIdx]==='correct') return;
+  numStr=numStr.slice(0,-1);
+  document.getElementById('numpad-display').textContent = numStr||'—';
+}
+
+// ================================================
+// CEK JAWABAN
+// ================================================
+function cekJawaban(){
+  if(activeGedungIdx<0) return;
+  if(gedungStatus[activeGedungIdx][activeSoalIdx]==='correct'){ showToast('✅ Sudah benar!','ok'); return; }
+  const val = parseFloat(numStr);
+  if(isNaN(val)){ showToast('Masukkan angka dulu!','err'); return; }
+  const s = GEDUNG[activeGedungIdx].soal[activeSoalIdx];
+  const ok = Math.abs(val-s.jwb)<0.1;
+  if(ok){
+    gedungStatus[activeGedungIdx][activeSoalIdx]='correct';
+    totalBenar++; score+=10;
+    updateScoreHUD();
+    showToast('✓ Benar! +10 poin 🪙','ok');
+    numStr=''; renderModalSoal();
+    const allDone = gedungStatus[activeGedungIdx].every(s=>s==='correct');
+    if(allDone){
+      gedungSelesai[activeGedungIdx]=true;
+      score+=20; updateScoreHUD(); updateGedungInfo();
+      setTimeout(()=>showToast('🏆 Gedung selesai! +20 poin bonus!','ok'),600);
+    }
+  } else {
+    gedungStatus[activeGedungIdx][activeSoalIdx]='wrong';
+    lives=Math.max(0,lives-1);
+    score=Math.max(-9999,score-PENALTY);
+    updateLivesHUD(); updateScoreHUD();
+    numStr=''; renderModalSoal();
+    if(lives===0){
+      score=Math.max(-9999,score-PENALTY_BONUS);
+      updateScoreHUD();
+      document.getElementById('soal-modal').classList.remove('show');
+      document.getElementById('go-sub').textContent=(namaSiswa||'Kamu')+', semua koin habis! Dapat 1 koin bonus untuk lanjut.';
+      document.getElementById('gameover').classList.add('show');
+    } else {
+      showToast('✗ Salah! -'+PENALTY+' poin | Koin: '+lives+' 🪙 | Hint: '+s.hint,'err');
+    }
+  }
+}
+
+function soalBerikutnya(){
+  if(activeGedungIdx<0) return;
+  numStr='';
+  const total = GEDUNG[activeGedungIdx].soal.length;
+  activeSoalIdx = activeSoalIdx<total-1 ? activeSoalIdx+1 : 0;
+  renderModalSoal();
+}
+
+// ================================================
+// GAME OVER & FINISH
+// ================================================
+function lanjutDariGameOver(){
+  document.getElementById('gameover').classList.remove('show');
+  lives=1; updateLivesHUD();
+  document.getElementById('soal-modal').classList.add('show');
+  showToast('💪 1 koin bonus!','ok');
+}
+
+function checkAllDone(){
+  if(gedungSelesai.every(Boolean)) showFinish();
+}
+
+function showFinish(){
+  const total = GEDUNG.reduce((a,g)=>a+g.soal.length,0);
+  const pct = Math.round((totalBenar/total)*100);
+  document.getElementById('f-stars').textContent = pct>=80?'⭐⭐⭐':pct>=50?'⭐⭐':'⭐';
+  document.getElementById('f-nama').textContent = namaSiswa?`Luar biasa, ${namaSiswa}! 🎉`:'Luar biasa!';
+  document.getElementById('f-score').textContent = score;
+  document.getElementById('f-benar').textContent = totalBenar;
+  document.getElementById('f-total').textContent = total;
+  document.getElementById('f-gedung').textContent = gedungSelesai.filter(Boolean).length+'/'+GEDUNG.length;
+  document.getElementById('finish').classList.add('show');
+}
+
+function ulangGame(){
+  document.getElementById('finish').classList.remove('show');
+  initGame();
+}
+
+// ================================================
+// HUD
+// ================================================
+function updateLivesHUD(){
+  for(let i=1;i<=MAX_LIVES;i++){
+    const c=document.getElementById('coin'+i);
+    if(c) i<=lives?c.classList.remove('lost'):c.classList.add('lost');
+  }
+}
+function updateScoreHUD(){ document.getElementById('ui-score').textContent=score+' poin'; }
+function updateGedungInfo(){
+  const done=gedungSelesai.filter(Boolean).length;
+  document.getElementById('hud-gedung-info').textContent=`Gedung: ${done}/${GEDUNG.length} selesai`;
+  buildMinimap();
+}
+function updateGedungBadge(){
+  GEDUNG.forEach((g,i)=>{
+    const badge=document.getElementById(`badge-${i}`);
+    if(!badge) return;
+    if(gedungSelesai[i]){ badge.setAttribute('value','✅ Selesai!'); badge.setAttribute('color','#4ade80'); }
+    else {
+      const done=gedungStatus[i].filter(s=>s==='correct').length;
+      badge.setAttribute('value',`📝 ${done}/${g.soal.length} benar`);
+      badge.setAttribute('color',done>0?'#fbbf24':'#94a3b8');
+    }
+  });
+}
+
+// ================================================
+// MINIMAP
+// ================================================
+function buildMinimap(){
+  const grid=document.getElementById('minimap-grid');
+  if(!grid) return;
+  grid.innerHTML='';
+  const xs=GEDUNG.map(g=>g.posX), zs=GEDUNG.map(g=>g.posZ);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs);
+  GEDUNG.forEach((g,i)=>{
+    const bx=((g.posX-minX)/(maxX-minX||1))*72;
+    const by=((g.posZ-minZ)/(maxZ-minZ||1))*72;
+    const el=document.createElement('div');
+    el.className='mm-building'+(gedungSelesai[i]?' done':'')+(activeGedungIdx===i?' active':'');
+    el.style.cssText=`left:${bx}px;top:${by}px;width:18px;height:14px;background:${gedungSelesai[i]?'rgba(74,222,128,.3)':g.warna+'55'}`;
+    el.textContent=gedungSelesai[i]?'✓':'';
+    grid.appendChild(el);
+  });
+}
+
+// ================================================
+// TOAST
+// ================================================
+let toastT;
+function showToast(msg,type){
+  let el=document.getElementById('toast-el');
+  if(!el){
+    el=document.createElement('div'); el.id='toast-el';
+    el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,60px);padding:10px 22px;border-radius:20px;font-size:13px;font-weight:800;z-index:9999;pointer-events:none;white-space:nowrap;font-family:Nunito,sans-serif;transition:opacity .3s';
+    document.body.appendChild(el);
+  }
+  clearTimeout(toastT);
+  el.textContent=msg;
+  el.style.background=type==='ok'?'rgba(74,222,128,.9)':'rgba(239,68,68,.9)';
+  el.style.color='#fff'; el.style.opacity='1';
+  toastT=setTimeout(()=>el.style.opacity='0',2500);
+}
+
+// ================================================
+// PASSWORD GURU (klik logo 5x → masukkan password)
+// ================================================
+let logoClicks=0,logoTimer=null;
+function logoClick(){
+  logoClicks++;
+  clearTimeout(logoTimer);
+  logoTimer=setTimeout(()=>logoClicks=0,3000);
+  if(logoClicks>=5){ logoClicks=0; clearTimeout(logoTimer); openPwModal(); }
+}
+function openPwModal(){
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-error').textContent='';
+  document.getElementById('pw-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('pw-input').focus(),100);
+}
+function closePwModal(){ document.getElementById('pw-modal').classList.remove('show'); }
+function cekPassword(){
+  if(document.getElementById('pw-input').value===GURU_PASSWORD){
+    closePwModal();
+    buildGuruList();
+    document.getElementById('guru').classList.add('show');
+    // Isi API key & bin id dari localStorage
+    if(CLOUD_KEY) document.getElementById('cloud-apikey').value = CLOUD_KEY;
+    if(CLOUD_BIN) document.getElementById('cloud-binid').value  = CLOUD_BIN;
+    updateCloudStatus();
+  } else {
+    document.getElementById('pw-error').textContent='❌ Password salah!';
+    document.getElementById('pw-input').value='';
+  }
+}
+
+// ================================================
+// MODE GURU
+// ================================================
+function hideGuru(){ document.getElementById('guru').classList.remove('show'); }
+function buildGuruList(){
+  const el=document.getElementById('guru-list'); el.innerHTML='';
+  GEDUNG.forEach((g,gi)=>{
+    const sec=document.createElement('div'); sec.className='g-building-section';
+    sec.innerHTML=`<div class="g-building-title"><input class="g-building-name-input" id="gname-${gi}" value="${g.nama}" placeholder="Nama Gedung"><span style="font-size:11px;color:rgba(255,255,255,.3)">(${g.soal.length} soal)</span></div><div id="gsoal-${gi}"></div><button class="btn-add" onclick="guruTambahSoal(${gi})">+ Tambah Soal di Gedung Ini</button>`;
+    el.appendChild(sec); renderGuruSoal(gi);
+  });
+}
+function renderGuruSoal(gi){
+  const c=document.getElementById(`gsoal-${gi}`); if(!c) return; c.innerHTML='';
+  GEDUNG[gi].soal.forEach((s,si)=>{
+    const card=document.createElement('div'); card.className='g-card';
+    card.innerHTML=`<div class="g-num">Soal ${si+1}</div><label class="g-label">Teks Soal</label><textarea class="g-input" id="gt-${gi}-${si}">${s.teks}</textarea><div class="g-row"><div style="flex:1"><label class="g-label">Jawaban</label><input class="g-input" type="number" id="gj-${gi}-${si}" value="${s.jwb}" step="any"></div><div style="flex:1.5"><label class="g-label">Hint</label><input class="g-input" type="text" id="gh-${gi}-${si}" value="${s.hint||''}"></div><div style="align-self:flex-end;padding-bottom:2px"><button class="btn-del" onclick="guruHapusSoal(${gi},${si})">✕</button></div></div>`;
+    c.appendChild(card);
+  });
+}
+function guruTambahSoal(gi){ GEDUNG[gi].soal.push({teks:'Tulis soal baru...',jwb:0,hint:'Tulis hint...'}); renderGuruSoal(gi); }
+function guruHapusSoal(gi,si){ if(GEDUNG[gi].soal.length<=1){alert('Minimal 1 soal!');return;} GEDUNG[gi].soal.splice(si,1); renderGuruSoal(gi); }
+// ================================================
+// CLOUD (JSONBin) — simpan soal permanen
+// ================================================
+let CLOUD_KEY = localStorage.getItem('kota_vr_key') || '';
+let CLOUD_BIN = localStorage.getItem('kota_vr_bin') || '';
+
+// Isi input dari localStorage saat buka Mode Guru
+const _origBuildGuruList = typeof buildGuruList === 'function' ? buildGuruList : null;
+function showGuruWithCloud(){
+  if(CLOUD_KEY) document.getElementById('cloud-apikey').value = CLOUD_KEY;
+  if(CLOUD_BIN) document.getElementById('cloud-binid').value  = CLOUD_BIN;
+  updateCloudStatus();
+}
+function updateCloudStatus(){
+  const el = document.getElementById('cloud-status');
+  if(!el) return;
+  if(CLOUD_KEY && CLOUD_BIN){
+    el.textContent = '✅ Terhubung! Simpan soal akan tersimpan ke cloud dan berlaku di semua device.';
+    el.style.background = 'rgba(74,222,128,.1)';
+    el.style.color = '#4ade80';
+  } else if(CLOUD_KEY){
+    el.textContent = '🔑 API Key ada tapi belum ada Bin ID. Klik Test & Hubungkan.';
+    el.style.background = 'rgba(251,191,36,.1)';
+    el.style.color = '#fbbf24';
+  } else {
+    el.textContent = '⚠️ Belum terhubung — soal hanya tersimpan lokal saat ini.';
+    el.style.background = 'rgba(255,255,255,.05)';
+    el.style.color = 'rgba(255,255,255,.35)';
+  }
+}
+
+async function cloudTest(){
+  const key = document.getElementById('cloud-apikey').value.trim();
+  const bin = document.getElementById('cloud-binid').value.trim();
+  const st  = document.getElementById('cloud-status');
+  if(!key){ st.textContent='⚠️ API Key tidak boleh kosong!'; st.style.color='#f87171'; return; }
+  st.textContent = '⏳ Menghubungkan...'; st.style.color = '#7dd3fc'; st.style.background='rgba(56,189,248,.1)';
+  CLOUD_KEY = key; CLOUD_BIN = bin;
+  localStorage.setItem('kota_vr_key', key);
+  if(bin){
+    // Coba baca bin yang sudah ada
+    try{
+      const r = await fetch('https://api.jsonbin.io/v3/b/'+bin+'/latest',{headers:{'X-Master-Key':key}});
+      if(r.ok){
+        const d = await r.json();
+        if(d.record && Array.isArray(d.record.gedung)){
+          GEDUNG = d.record.gedung;
+          localStorage.setItem('kota_vr_bin', bin);
+          st.textContent = '✅ Terhubung! '+GEDUNG.length+' gedung dimuat dari cloud.';
+          st.style.color='#4ade80'; st.style.background='rgba(74,222,128,.1)';
+          buildGuruList();
+        } else {
+          st.textContent = '⚠️ Bin ditemukan tapi format tidak cocok.';
+          st.style.color='#f87171';
+        }
+      } else {
+        st.textContent = '❌ Bin ID tidak valid atau API Key salah.';
+        st.style.color='#f87171'; st.style.background='rgba(239,68,68,.1)';
+      }
+    } catch(e){
+      st.textContent = '❌ Gagal terhubung: '+e.message;
+      st.style.color='#f87171';
+    }
+  } else {
+    // Buat bin baru
+    try{
+      const r = await fetch('https://api.jsonbin.io/v3/b',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Master-Key':key,'X-Bin-Name':'kota-vr-soal','X-Bin-Private':'false'},
+        body: JSON.stringify({gedung: GEDUNG})
+      });
+      if(r.ok){
+        const d = await r.json();
+        CLOUD_BIN = d.metadata.id;
+        localStorage.setItem('kota_vr_bin', CLOUD_BIN);
+        document.getElementById('cloud-binid').value = CLOUD_BIN;
+        st.textContent = '✅ Bin baru dibuat! ID: '+CLOUD_BIN+'. Sekarang simpan soal kamu.';
+        st.style.color='#4ade80'; st.style.background='rgba(74,222,128,.1)';
+      } else {
+        const err = await r.json();
+        st.textContent = '❌ Gagal buat bin: '+(err.message||r.status);
+        st.style.color='#f87171'; st.style.background='rgba(239,68,68,.1)';
+      }
+    } catch(e){
+      st.textContent = '❌ Gagal: '+e.message;
+      st.style.color='#f87171';
+    }
+  }
+}
+
+async function cloudLoad(){
+  if(!CLOUD_KEY||!CLOUD_BIN) return false;
+  try{
+    const r = await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN+'/latest',{headers:{'X-Master-Key':CLOUD_KEY}});
+    if(!r.ok) return false;
+    const d = await r.json();
+    if(d.record && Array.isArray(d.record.gedung)){ GEDUNG = d.record.gedung; return true; }
+    return false;
+  } catch(e){ return false; }
+}
+
+async function cloudSave(data){
+  if(!CLOUD_KEY) return {ok:false, msg:'API Key belum ada'};
+  try{
+    if(!CLOUD_BIN){
+      const r = await fetch('https://api.jsonbin.io/v3/b',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'kota-vr-soal','X-Bin-Private':'false'},
+        body: JSON.stringify({gedung: data})
+      });
+      if(!r.ok){ const e=await r.json(); return{ok:false,msg:e.message||r.status}; }
+      const d = await r.json();
+      CLOUD_BIN = d.metadata.id;
+      localStorage.setItem('kota_vr_bin', CLOUD_BIN);
+      if(document.getElementById('cloud-binid')) document.getElementById('cloud-binid').value = CLOUD_BIN;
+    } else {
+      const r = await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY},
+        body: JSON.stringify({gedung: data})
+      });
+      if(!r.ok){ const e=await r.json(); return{ok:false,msg:e.message||r.status}; }
+    }
+    return {ok:true};
+  } catch(e){ return{ok:false,msg:e.message}; }
+}
+
+async function guruSimpan(){
+  // Baca dari form
+  GEDUNG.forEach((g,gi)=>{
+    const nm=document.getElementById(`gname-${gi}`); if(nm) g.nama=nm.value.trim()||g.nama;
+    g.soal.forEach((s,si)=>{
+      const t=document.getElementById(`gt-${gi}-${si}`),j=document.getElementById(`gj-${gi}-${si}`),h=document.getElementById(`gh-${gi}-${si}`);
+      if(t) s.teks=t.value.trim(); if(j) s.jwb=parseFloat(j.value)||0; if(h) s.hint=h.value.trim();
+    });
+  });
+
+  // Simpan ke cloud jika ada API key
+  const apikey = document.getElementById('cloud-apikey')?.value.trim();
+  const binid  = document.getElementById('cloud-binid')?.value.trim();
+  if(apikey){ CLOUD_KEY=apikey; localStorage.setItem('kota_vr_key',apikey); }
+  if(binid)  { CLOUD_BIN=binid;  localStorage.setItem('kota_vr_bin',binid); }
+
+  if(CLOUD_KEY){
+    const btn = document.getElementById('btn-guru-save');
+    if(btn){ btn.textContent='⏳ Menyimpan ke cloud...'; btn.disabled=true; }
+    const hasil = await cloudSave(GEDUNG);
+    if(btn){ btn.textContent='💾 Simpan & Terapkan ke Game'; btn.disabled=false; }
+    if(hasil.ok){
+      updateCloudStatus();
+      hideGuru(); initGame(); buildBuildings();
+      showToast('✅ Tersimpan ke cloud! Berlaku di semua device.','ok');
+    } else {
+      showToast('❌ Gagal simpan cloud: '+hasil.msg,'err');
+    }
+  } else {
+    hideGuru(); initGame(); buildBuildings();
+    showToast('✓ Disimpan lokal! Isi API Key agar permanen.','ok');
+  }
+}
+
+// ================================================
+// JOYSTICK VIRTUAL (muncul otomatis di HP)
+// ================================================
+(function(){
+  const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  if(isTouch){
+    document.getElementById('joystick-zone').style.display='block';
+    document.getElementById('look-buttons').style.display='grid';
+  }
+  const DEAD=10, MAX_R=33, SPEED=0.08;
+  let jActive=false, jStartX=0, jStartY=0, jDx=0, jDz=0, moveLoop=null;
+  const outer=document.getElementById('joystick-outer');
+  const inner=document.getElementById('joystick-inner');
+  if(!outer) return;
+  outer.addEventListener('touchstart',e=>{
+    e.preventDefault(); jActive=true;
+    const rect=outer.getBoundingClientRect();
+    jStartX=rect.left+rect.width/2; jStartY=rect.top+rect.height/2;
+    if(!moveLoop) moveLoop=setInterval(applyMovement,16);
+  },{passive:false});
+  outer.addEventListener('touchmove',e=>{
+    e.preventDefault(); if(!jActive) return;
+    const t=e.touches[0];
+    let dx=t.clientX-jStartX, dy=t.clientY-jStartY;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const clamped=Math.min(dist,MAX_R);
+    const angle=Math.atan2(dy,dx);
+    inner.style.transform=`translate(calc(-50% + ${Math.cos(angle)*clamped}px), calc(-50% + ${Math.sin(angle)*clamped}px))`;
+    if(dist>DEAD){ jDx=dx/dist; jDz=dy/dist; } else { jDx=0; jDz=0; }
+  },{passive:false});
+  outer.addEventListener('touchend',e=>{
+    e.preventDefault(); jActive=false; jDx=0; jDz=0;
+    inner.style.transform='translate(-50%,-50%)';
+    clearInterval(moveLoop); moveLoop=null;
+  },{passive:false});
+  function applyMovement(){
+    if(!jActive||(jDx===0&&jDz===0)) return;
+    const rig=document.getElementById('rig'); if(!rig) return;
+    const cam=document.querySelector('a-camera'); if(!cam) return;
+    const yaw=THREE.MathUtils.degToRad((cam.getAttribute('rotation')||{y:0}).y);
+    const pos=rig.getAttribute('position');
+    let nx=pos.x+(-Math.sin(yaw)*(-jDz)+Math.cos(yaw)*jDx)*SPEED*5;
+    let nz=pos.z+(-Math.cos(yaw)*(-jDz)+(-Math.sin(yaw))*jDx)*SPEED*5;
+    nx=Math.max(-22,Math.min(22,nx)); nz=Math.max(-42,Math.min(5,nz));
+    rig.setAttribute('position',{x:nx,y:pos.y,z:nz});
+  }
+  let lookDir=null, lookLoop=null;
+  window.startLook=function(dir){ lookDir=dir; if(!lookLoop) lookLoop=setInterval(applyLook,16); };
+  window.stopLook=function(){ lookDir=null; clearInterval(lookLoop); lookLoop=null; };
+  function applyLook(){
+    if(!lookDir) return;
+    const cam=document.querySelector('a-camera'); if(!cam) return;
+    const rot=cam.getAttribute('rotation')||{x:0,y:0,z:0};
+    let {x,y}=rot;
+    if(lookDir==='left') y+=2.5; if(lookDir==='right') y-=2.5;
+    if(lookDir==='up') x=Math.max(-60,x-2.5); if(lookDir==='down') x=Math.min(30,x+2.5);
+    cam.setAttribute('rotation',{x,y,z:0});
+  }
+})();
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') keluarGedung();
+  if(!document.getElementById('soal-modal').classList.contains('show')) return;
+  if(e.key==='Enter') cekJawaban();
+  if(e.key==='Backspace') numDel();
+  if(/^[0-9.]$/.test(e.key)) numInput(e.key);
+  if(e.key==='ArrowRight'||e.key==='Tab'){ e.preventDefault(); soalBerikutnya(); }
+});
+</script>
+</body>
+</html>
